@@ -1,6 +1,12 @@
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 
 public class CalendarForMounth {
@@ -37,20 +43,29 @@ public class CalendarForMounth {
         gregorianCalendar.clear();
         gregorianCalendar.set(year, month - 1, 0);
 
-        Calendar calendar = Calendar.getInstance();
-        int dayOfCurrMonth = calendar.get(Calendar.DAY_OF_MONTH);
-        int currMonth = calendar.get(Calendar.MONTH)+1;
-
         int firstMonthDay = gregorianCalendar.get(Calendar.DAY_OF_WEEK);
-        int numMonthDay = gregorianCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+        int daysInMonth = YearMonth.of(year, month).lengthOfMonth();
 
-        if (month!=currMonth) {dayOfCurrMonth=0;}
+        LocalDate firstMonthData = LocalDate.of(year,month,1);
+        LocalDate lastMonthData = LocalDate.of(year,month,daysInMonth);
 
-        printCalendar(numMonthDay, firstMonthDay, dayOfCurrMonth);
+        List<LocalDate> days = getListOfDays(firstMonthData, lastMonthData);
+        printMonthCalendar(days, firstMonthDay);
     }
 
 
-    private static void printCalendar(int numMonthDay, int firstMonthDay, int dayOfCurrMonth) {
+    public static List<LocalDate> getListOfDays(
+            LocalDate startDate, LocalDate endDate) {
+
+        long numOfDaysBetween = ChronoUnit.DAYS.between(startDate, endDate);
+        return IntStream.iterate(0, i -> i + 1)
+                .limit(numOfDaysBetween+1)
+                .mapToObj(i -> startDate.plusDays(i))
+                .collect(Collectors.toList());
+    }
+
+
+    private static void printMonthCalendar(List<LocalDate> days, int firstMonthDay) {
         int weekdayIndex = 0;
 
         System.out.println(ANSI_RED+"Mn  Tu  Wn  Th  Fr  St  Sun"+ANSI_RESET);
@@ -60,24 +75,24 @@ public class CalendarForMounth {
             weekdayIndex++;
         }
 
-        for (int day = 1; day <= numMonthDay; day++) {
+        for (LocalDate date : days) {
+            int dayOfMonth = date.getDayOfMonth();
 
-            if (day<10&&(weekdayIndex == 5||weekdayIndex == 6)) System.out.print(ANSI_RED+day+" "+ANSI_RESET);
-            else if (day<10)                                    System.out.print(day+" ");
-            else if (day==dayOfCurrMonth)                       System.out.print(ANSI_CYAN+day+ANSI_RESET);
-            else if (weekdayIndex == 5||weekdayIndex == 6)      System.out.print(ANSI_RED+day+ANSI_RESET);
-            else System.out.print(day);
+            if (dayOfMonth<10&&(weekdayIndex == 5||weekdayIndex == 6)) System.out.print(ANSI_RED+dayOfMonth+" "+ANSI_RESET);
+            else if (dayOfMonth<10)                                    System.out.print(dayOfMonth+" ");
+            else if (date==LocalDate.now())                            System.out.print(ANSI_CYAN+dayOfMonth+ANSI_RESET);
+            else if (weekdayIndex == 5||weekdayIndex == 6)             System.out.print(ANSI_RED+dayOfMonth+ANSI_RESET);
+            else System.out.print(dayOfMonth);
 
             weekdayIndex++;
-
             if (weekdayIndex == 7) {
                 weekdayIndex = 0;
                 System.out.println();
             }
             else {
                 System.out.print("  ");
-         }}
-    }
+            }}
+        }
 
  }
 
